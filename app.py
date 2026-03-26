@@ -338,6 +338,34 @@ def safe_get(url, headers=None, params=None, timeout=15):
     except Exception:
         return None
 
+
+def ensure_https(url: str) -> str:
+    if not url:
+        return ""
+    if url.startswith("//"):
+        return "https:" + url
+    if url.startswith("http://"):
+        return "https://" + url[len("http://"):]
+    return url
+
+
+def is_accessible(url: str, timeout: int = 8) -> bool:
+    """Lightweight reachability check to skip 401/403 archive items."""
+    if not url:
+        return False
+    try:
+        r = requests.head(url, timeout=timeout, allow_redirects=True)
+        if r.status_code in (401, 403):
+            return False
+        if 200 <= r.status_code < 400:
+            return True
+        if r.status_code in (405, 501):
+            r2 = requests.get(url, timeout=timeout, stream=True)
+            return 200 <= r2.status_code < 400
+    except Exception:
+        return False
+    return False
+
 def fmt_dur(s):
     if s is None: return "N/A"
     s = int(s); m, sec = divmod(s, 60)
@@ -380,6 +408,8 @@ def make_result(source_key, **kwargs):
         "author": "", "is_interactive": False, "width": 0, "height": 0,
     }
     base.update(kwargs)
+    for k in ["thumbnail", "preview_url", "download_url", "page_url"]:
+        base[k] = ensure_https(base.get(k, ""))
     return base
 
 # ───────────────────────────────────────────────────
@@ -403,6 +433,8 @@ def search_pexels_videos(q, n=15, **kw):
             out.append(make_result("pexels_v",
                 title=f"Pexels #{v['id']}", description=q,
                 thumbnail=pics[0]["picture"] if pics else "",
+        if not is_accessible(dl_url):
+            continue
                 preview_url=prev.get("link",""), download_url=best.get("link",""),
                 duration=v.get("duration"), resolution=f"{best.get('width','?')}x{best.get('height','?')}",
                 quality="4K" if best.get("height",0)>=2160 else ("HD" if best.get("height",0)>=720 else "SD"),
@@ -751,10 +783,14 @@ def search_pixabay_images(q, n=20, **kw):
                               "safesearch":"true","image_type":"all"})
         if not d: break
         for p in d.get("hits",[]):
+            thumb = p.get("webformatURL", "")
+            full = p.get("largeImageURL", thumb)
             out.append(make_result("pixabay_i",
                 title=f"Pixabay #{p['id']}", description=p.get("tags",q)[:200],
-                thumbnail=p.get("webformatURL",""), preview_url=p.get("largeImageURL",""),
-                download_url=p.get("largeImageURL",""), page_url=p.get("pageURL",""),
+                thumbnail=thumb,
+                preview_url=thumb,
+                download_url=full,
+                page_url=p.get("pageURL",""),
                 resolution=f"{p.get('imageWidth','?')}x{p.get('imageHeight','?')}",
                 quality="4K" if p.get("imageWidth",0)>=3840 else "HD",
                 author=p.get("user",""), width=p.get("imageWidth",0), height=p.get("imageHeight",0),
