@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.db
+.env
+.env.*
+
+# Streamlit
+.streamlit/secrets.toml
+.streamlit/*.toml
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
+
+# Virtual envs
+venv/
+.env.local/
+.venv/
+
+# Cache/build
+.build/
+.dist/
+node_modules/

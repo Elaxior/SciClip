@@ -1,0 +1,5 @@
+streamlit>=1.37.0
+requests>=2.31.0
+httpx>=0.27.0
+Pillow>=10.0.0
+streamlit-player>=0.1.5
