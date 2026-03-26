@@ -433,8 +433,6 @@ def search_pexels_videos(q, n=15, **kw):
             out.append(make_result("pexels_v",
                 title=f"Pexels #{v['id']}", description=q,
                 thumbnail=pics[0]["picture"] if pics else "",
-        if not is_accessible(dl_url):
-            continue
                 preview_url=prev.get("link",""), download_url=best.get("link",""),
                 duration=v.get("duration"), resolution=f"{best.get('width','?')}x{best.get('height','?')}",
                 quality="4K" if best.get("height",0)>=2160 else ("HD" if best.get("height",0)>=720 else "SD"),
@@ -576,6 +574,8 @@ def search_archive_videos(q, n=12, **kw):
                           key=lambda x: int(x.get("size",0)), reverse=True)
             if mp4s: dl_url = f"https://archive.org/download/{ident}/{mp4s[0]['name']}"
         if not dl_url: continue
+        if not is_accessible(dl_url):
+            continue
         out.append(make_result("archive_v",
             title=str(title)[:80], description=clean_html(str(doc.get("description","")))[:200],
             thumbnail=f"https://archive.org/services/img/{ident}",
