@@ -40,7 +40,7 @@ from typing import Optional
 # PAGE CONFIG
 # ───────────────────────────────────────────────────
 st.set_page_config(
-    page_title="🔬 SciClip Pro v2",
+    page_title="SciClip",
     page_icon="🔬",
     layout="wide",
     initial_sidebar_state="expanded",
